@@ -1,0 +1,9 @@
+
+
+# Load bootloader symbols
+set confirm off
+    # Bootloader elf was not found
+set confirm on
+
+# Load application symbols
+file D:/Desktop/f/esp-claw-cp/application/basic_demo/build_can/bootloader/bootloader.elf

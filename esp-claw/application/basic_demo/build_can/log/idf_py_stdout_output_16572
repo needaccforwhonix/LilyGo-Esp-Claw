@@ -1,0 +1,5 @@
+Command: D:\Espressif\python_env\idf5.5_py3.11_env\Scripts\python.exe -m esptool --chip esp32s3 merge_bin -o merged-binary.bin -f raw @flash_args
+esptool.py --chip esp32s3 merge_bin -o merged-binary.bin -f raw --flash_mode dio --flash_freq 80m --flash_size 8MB 0x0 bootloader/bootloader.bin 0x20000 basic_demo.bin 0x8000 partition_table/partition-table.bin 0xf000 ota_data_initial.bin 0x320000 emote_assets.bin 0x620000 storage.bin
+esptool.py v4.12.dev1
+SHA digest in image updated
+Wrote 0x797000 bytes to file merged-binary.bin, ready to flash to offset 0x0

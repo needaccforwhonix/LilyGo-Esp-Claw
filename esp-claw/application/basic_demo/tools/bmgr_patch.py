@@ -36,6 +36,7 @@ UPDATE_CONFIG_FUNCTION = """esp_err_t esp_board_device_update_config(const char 
 UPDATE_CONFIG_DECLARATION = 'esp_err_t esp_board_device_update_config(const char *name, const void *config);\n'
 UAC_PSRAM_LINE = '            || esp_ptr_in_psram(ptr)\n'
 UAC_PSRAM_COMMENTED_LINE = '            // || esp_ptr_in_psram(ptr)\n'
+UAC_EXTERNAL_RAM_LINE = '            || esp_ptr_external_ram(ptr)\n'
 BOARD_DEVICE_ARRAY_CONST_LINE = 'const esp_board_device_desc_t g_esp_board_devices'
 BOARD_DEVICE_ARRAY_MUTABLE_LINE = 'esp_board_device_desc_t g_esp_board_devices'
 
@@ -105,6 +106,10 @@ def patch_uac_file(path: Path) -> bool:
         return False
     content = ensure_contains(path, 'ptr_is_writable')
     if UAC_PSRAM_COMMENTED_LINE in content:
+        return False
+    # Newer usb_host_uac versions use the supported ESP-IDF API and do not
+    # need the compatibility patch intended for esp_ptr_in_psram().
+    if UAC_EXTERNAL_RAM_LINE in content:
         return False
     if UAC_PSRAM_LINE not in content:
         fail(f'Target line not found in {path}: {UAC_PSRAM_LINE.strip()}')

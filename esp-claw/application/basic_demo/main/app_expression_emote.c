@@ -16,6 +16,7 @@
 #include "freertos/FreeRTOS.h"
 #include "gfx.h"
 #include "display_arbiter.h"
+#include "basic_demo_wifi.h"
 
 #if defined(CONFIG_BASIC_DEMO_ENABLE_EMOTE)
 
@@ -202,8 +203,8 @@ static esp_err_t app_emote_apply(const char *idle, const char *msg)
 
     gfx_obj_t *icon_obj = emote_get_obj_by_name(s_emote_handle, EMT_DEF_ELEM_STATUS_ICON);
     if (icon_obj) {
-        gfx_obj_set_pos(icon_obj, 10, 68);
-        ESP_LOGI(TAG, "Status icon repositioned to (10, 68)");
+        gfx_obj_set_pos(icon_obj, 10, 78);
+        ESP_LOGI(TAG, "Status icon repositioned to (10, 78)");
     }
 
     if (display_arbiter_is_owner(DISPLAY_ARBITER_OWNER_EMOTE)) {
@@ -226,12 +227,13 @@ esp_err_t app_expression_emote_set_status(bool sta_connected, const char *ap_ssi
 
     const bool ap_present = (ap_ssid != NULL && ap_ssid[0] != '\0');
     const char *idle = sta_connected ? "swim" : "offline";
+    const char *ip = basic_demo_wifi_get_ip();
 
     char msg[96];
     if (sta_connected && ap_present) {
-        snprintf(msg, sizeof(msg), "Online * AP: %s", ap_ssid);
+        snprintf(msg, sizeof(msg), "Online * AP: %s  IP: %s", ap_ssid, ip);
     } else if (sta_connected) {
-        snprintf(msg, sizeof(msg), "Wi-Fi connected");
+        snprintf(msg, sizeof(msg), "Wi-Fi connected  IP: %s", ip);
     } else if (ap_present) {
         snprintf(msg, sizeof(msg), "Setup WiFi: %s", ap_ssid);
     } else {

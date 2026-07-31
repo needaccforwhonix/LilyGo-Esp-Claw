@@ -1,0 +1,21 @@
+Command: cmake -G Ninja -DPYTHON_DEPS_CHECKED=1 -DPYTHON=D:\Espressif\python_env\idf5.5_py3.11_env\Scripts\python.exe -DESP_PLATFORM=1 -DCCACHE_ENABLE=1 D:\Desktop\f\esp-claw-cp\application\basic_demo
+CMake Warning at D:/Espressif/frameworks/esp-idf-v5.5.4/tools/cmake/build.cmake:629 (message):
+Call Stack (most recent call first):
+  D:/Espressif/frameworks/esp-idf-v5.5.4/tools/cmake/project.cmake:752 (idf_build_process)
+  CMakeLists.txt:7 (project)
+
+
+CMake Warning at D:/Espressif/frameworks/esp-idf-v5.5.4/tools/cmake/project.cmake:765 (message):
+  Missing kconfig option.  Re-run the build process...
+Call Stack (most recent call first):
+  CMakeLists.txt:7 (project)
+
+
+CMake Warning at managed_components/espressif2022__esp_emote_assets/CMakeLists.txt:53 (message):
+  Output file not found for size validation:
+  D:/Desktop/f/esp-claw-cp/application/basic_demo/build_can/emote_assets.bin
+Call Stack (most recent call first):
+  managed_components/espressif2022__esp_emote_assets/CMakeLists.txt:109 (validate_partition_size)
+  main/CMakeLists.txt:16 (build_speaker_assets_bin)
+
+

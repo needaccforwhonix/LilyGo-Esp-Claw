@@ -1,0 +1,308 @@
+Command: cmake -G Ninja -DPYTHON_DEPS_CHECKED=1 -DPYTHON=D:\Espressif\python_env\idf5.5_py3.11_env\Scripts\python.exe -DESP_PLATFORM=1 -DCCACHE_ENABLE=0 D:\Desktop\f\esp-claw-cp\application\basic_demo
+-- [basic_demo] ESP-IDF patch already applied: D:/Desktop/f/esp-claw-cp/application/basic_demo/tools/esp-idf.patch
+-- [basic_demo] Partition table auto-selected: partitions_8MB.csv
+-- Minimal build - OFF
+-- Building ESP-IDF components for target esp32s3
+NOTICE: Skipping optional dependency: espressif/esp_h264
+NOTICE: Skipping optional dependency: espressif/esp_ipa
+NOTICE: Skipping optional dependency: espressif/usb
+NOTICE: Skipping optional dependency: espressif/esp_wifi_remote
+NOTICE: Skipping optional dependency: espressif/esp_hosted
+NOTICE: Direct dependencies have changed, solving dependencies.
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_boards for dependency "cap_boards", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_cli for dependency "cap_cli", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_files for dependency "cap_files", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_attachment for dependency "cap_im_attachment", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_feishu for dependency "cap_im_feishu", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_qq for dependency "cap_im_qq", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_tg for dependency "cap_im_tg", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_wechat for dependency "cap_im_wechat", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_llm_inspect for dependency "cap_llm_inspect", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_lua for dependency "cap_lua", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_mcp_client for dependency "cap_mcp_client", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_mcp_server for dependency "cap_mcp_server", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_router_mgr for dependency "cap_router_mgr", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_scheduler for dependency "cap_scheduler", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_session_mgr for dependency "cap_session_mgr", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_skill_mgr for dependency "cap_skill_mgr", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_system for dependency "cap_system", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_time for dependency "cap_time", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_web_search for dependency "cap_web_search", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_cap for dependency "claw_cap", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_core for dependency "claw_core", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_event_router for dependency "claw_event_router", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_memory for dependency "claw_memory", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_skill for dependency "claw_skill", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\esp_painter for dependency "esp_painter", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_board_manager for dependency "lua_module_board_manager", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_button for dependency "lua_module_button", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_can for dependency "lua_module_can", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_delay for dependency "lua_module_delay", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_display for dependency "lua_module_display", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_esp_heap for dependency "lua_module_esp_heap", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_event_publisher for dependency "lua_module_event_publisher", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_gpio for dependency "lua_module_gpio", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_led_strip for dependency "lua_module_led_strip", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_lora for dependency "lua_module_lora", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_mcpwm for dependency "lua_module_mcpwm", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_storage for dependency "lua_module_storage", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_system for dependency "lua_module_system", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_uart for dependency "lua_module_uart", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+.........................................................................NOTICE: Updating lock file at D:\Desktop\f\esp-claw-cp\application\basic_demo\dependencies.lock
+NOTICE: Deleting 5 unused components
+NOTICE:  espressif__esp_cam_sensor
+NOTICE:  espressif__esp_codec_dev
+NOTICE:  espressif__esp_video
+NOTICE:  espressif__esp_sccb_intf
+NOTICE:  espressif__esp-dsp
+NOTICE: Processing 61 dependencies:
+NOTICE: [1/61] cap_boards (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_boards)
+NOTICE: [2/61] cap_cli (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_cli)
+NOTICE: [3/61] cap_files (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_files)
+NOTICE: [4/61] cap_im_attachment (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_attachment)
+NOTICE: [5/61] cap_im_feishu (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_feishu)
+NOTICE: [6/61] cap_im_qq (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_qq)
+NOTICE: [7/61] cap_im_tg (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_tg)
+NOTICE: [8/61] cap_im_wechat (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_wechat)
+NOTICE: [9/61] cap_llm_inspect (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_llm_inspect)
+NOTICE: [10/61] cap_lua (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_lua)
+NOTICE: [11/61] cap_mcp_client (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_mcp_client)
+NOTICE: [12/61] cap_mcp_server (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_mcp_server)
+NOTICE: [13/61] cap_router_mgr (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_router_mgr)
+NOTICE: [14/61] cap_scheduler (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_scheduler)
+NOTICE: [15/61] cap_session_mgr (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_session_mgr)
+NOTICE: [16/61] cap_skill_mgr (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_skill_mgr)
+NOTICE: [17/61] cap_system (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_system)
+NOTICE: [18/61] cap_time (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_time)
+NOTICE: [19/61] cap_web_search (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_web_search)
+NOTICE: [20/61] claw_cap (*) (D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_cap)
+NOTICE: [21/61] claw_core (*) (D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_core)
+NOTICE: [22/61] claw_event_router (*) (D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_event_router)
+NOTICE: [23/61] claw_memory (*) (D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_memory)
+NOTICE: [24/61] claw_skill (*) (D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_skill)
+NOTICE: [25/61] esp_painter (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\esp_painter)
+NOTICE: [26/61] espressif/button (4.2.0)
+NOTICE: [27/61] espressif/cmake_utilities (0.5.0)
+NOTICE: [28/61] espressif/esp_board_manager (0.5.8)
+NOTICE: [29/61] espressif/esp_lcd_touch (1.2.1)
+NOTICE: [30/61] espressif/esp_mmap_assets (1.4.0)
+NOTICE: [31/61] espressif/esp_new_jpeg (1.0.2)
+NOTICE: [32/61] espressif/esp_websocket_client (1.8.0)
+NOTICE: [33/61] espressif/freetype (2.14.2)
+NOTICE: [34/61] espressif/led_strip (3.0.3)
+NOTICE: [35/61] espressif/libpng (1.6.58)
+NOTICE: [36/61] espressif/mcp-c-sdk (1.0.0)
+NOTICE: [37/61] espressif/mdns (1.11.3)
+NOTICE: [38/61] espressif/usb_host_uac (1.3.3)
+NOTICE: [39/61] espressif/usb_host_uvc (2.4.2)
+NOTICE: [40/61] espressif/zlib (1.3.2)
+NOTICE: [41/61] espressif2022/esp_emote_assets (0.1.2)
+NOTICE: [42/61] espressif2022/esp_emote_expression (1.0.0)
+NOTICE: [43/61] espressif2022/esp_emote_gfx (3.0.5)
+NOTICE: [44/61] georgik/lua (5.5.0~7)
+NOTICE: [45/61] laride/heatshrink (0.4.1)
+NOTICE: [46/61] lua_module_board_manager (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_board_manager)
+NOTICE: [47/61] lua_module_button (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_button)
+NOTICE: [48/61] lua_module_can (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_can)
+NOTICE: [49/61] lua_module_delay (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_delay)
+NOTICE: [50/61] lua_module_display (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_display)
+NOTICE: [51/61] lua_module_esp_heap (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_esp_heap)
+NOTICE: [52/61] lua_module_event_publisher (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_event_publisher)
+NOTICE: [53/61] lua_module_gpio (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_gpio)
+NOTICE: [54/61] lua_module_led_strip (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_led_strip)
+NOTICE: [55/61] lua_module_lora (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_lora)
+NOTICE: [56/61] lua_module_mcpwm (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_mcpwm)
+NOTICE: [57/61] lua_module_storage (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_storage)
+NOTICE: [58/61] lua_module_system (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_system)
+NOTICE: [59/61] lua_module_uart (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_uart)
+NOTICE: [60/61] lvgl/lvgl (9.5.0)
+NOTICE: [61/61] idf (5.5.4)
+-- Selected Board: LilyGo_T_Connect_Pro
+-- Board Path: D:/Desktop/f/esp-claw-cp/application/basic_demo/boards/LilyGo_T_Connect_Pro
+-- ESP-TEE is currently supported only on the esp32c6;esp32h2;esp32c5 SoCs
+NOTICE: Skipping optional dependency: espressif/esp_wifi_remote
+NOTICE: Skipping optional dependency: espressif/esp_hosted
+NOTICE: Skipping optional dependency: espressif/usb
+-- Project sdkconfig file D:/Desktop/f/esp-claw-cp/application/basic_demo/sdkconfig
+Loading defaults file D:/Desktop/f/esp-claw-cp/application/basic_demo/sdkconfig.defaults...
+Loading defaults file D:/Desktop/f/esp-claw-cp/application/basic_demo/build_can/basic_demo_partition_auto.defaults...
+NOTICE: Skipping optional dependency: espressif/button
+NOTICE: Optional dependency "espressif/esp_codec_dev" of "espressif/esp_board_manager (0.5.8)" is not present in the lock file, solving dependencies.
+NOTICE: Skipping optional dependency: espressif/esp_wifi_remote
+NOTICE: Skipping optional dependency: espressif/esp_hosted
+NOTICE: Skipping optional dependency: lua_module_lcd_touch
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_boards for dependency "cap_boards", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_cli for dependency "cap_cli", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_files for dependency "cap_files", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_attachment for dependency "cap_im_attachment", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_feishu for dependency "cap_im_feishu", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_qq for dependency "cap_im_qq", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_tg for dependency "cap_im_tg", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_wechat for dependency "cap_im_wechat", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_llm_inspect for dependency "cap_llm_inspect", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_lua for dependency "cap_lua", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_mcp_client for dependency "cap_mcp_client", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_mcp_server for dependency "cap_mcp_server", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_router_mgr for dependency "cap_router_mgr", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_scheduler for dependency "cap_scheduler", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_session_mgr for dependency "cap_session_mgr", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_skill_mgr for dependency "cap_skill_mgr", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_system for dependency "cap_system", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_time for dependency "cap_time", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_web_search for dependency "cap_web_search", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_cap for dependency "claw_cap", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_core for dependency "claw_core", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_event_router for dependency "claw_event_router", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_memory for dependency "claw_memory", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_skill for dependency "claw_skill", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\esp_painter for dependency "esp_painter", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_audio for dependency "lua_module_audio", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_board_manager for dependency "lua_module_board_manager", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_button for dependency "lua_module_button", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_camera for dependency "lua_module_camera", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_can for dependency "lua_module_can", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_delay for dependency "lua_module_delay", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_display for dependency "lua_module_display", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_esp_heap for dependency "lua_module_esp_heap", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_event_publisher for dependency "lua_module_event_publisher", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_gpio for dependency "lua_module_gpio", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_led_strip for dependency "lua_module_led_strip", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_lora for dependency "lua_module_lora", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_mcpwm for dependency "lua_module_mcpwm", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_storage for dependency "lua_module_storage", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_system for dependency "lua_module_system", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+NOTICE: Using component placed at D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_uart for dependency "lua_module_uart", specified in D:\Desktop\f\esp-claw-cp\application\basic_demo\main\idf_component.yml
+..................................NOTICE: Skipping optional dependency: espressif/esp_io_expander
+NOTICE: Skipping optional dependency: espressif/esp_lcd_touch
+..NOTICE: Skipping optional dependency: espressif/esp_h264
+NOTICE: Skipping optional dependency: espressif/esp_ipa
+...NOTICE: Skipping optional dependency: espressif/usb
+...................................................NOTICE: Updating lock file at D:\Desktop\f\esp-claw-cp\application\basic_demo\dependencies.lock
+NOTICE: Processing 68 dependencies:
+NOTICE: [1/68] cap_boards (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_boards)
+NOTICE: [2/68] cap_cli (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_cli)
+NOTICE: [3/68] cap_files (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_files)
+NOTICE: [4/68] cap_im_attachment (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_attachment)
+NOTICE: [5/68] cap_im_feishu (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_feishu)
+NOTICE: [6/68] cap_im_qq (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_qq)
+NOTICE: [7/68] cap_im_tg (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_tg)
+NOTICE: [8/68] cap_im_wechat (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_im_wechat)
+NOTICE: [9/68] cap_llm_inspect (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_llm_inspect)
+NOTICE: [10/68] cap_lua (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_lua)
+NOTICE: [11/68] cap_mcp_client (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_mcp_client)
+NOTICE: [12/68] cap_mcp_server (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_mcp_server)
+NOTICE: [13/68] cap_router_mgr (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_router_mgr)
+NOTICE: [14/68] cap_scheduler (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_scheduler)
+NOTICE: [15/68] cap_session_mgr (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_session_mgr)
+NOTICE: [16/68] cap_skill_mgr (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_skill_mgr)
+NOTICE: [17/68] cap_system (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_system)
+NOTICE: [18/68] cap_time (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_time)
+NOTICE: [19/68] cap_web_search (*) (D:\Desktop\f\esp-claw-cp\components\claw_capabilities\cap_web_search)
+NOTICE: [20/68] claw_cap (*) (D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_cap)
+NOTICE: [21/68] claw_core (*) (D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_core)
+NOTICE: [22/68] claw_event_router (*) (D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_event_router)
+NOTICE: [23/68] claw_memory (*) (D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_memory)
+NOTICE: [24/68] claw_skill (*) (D:\Desktop\f\esp-claw-cp\components\claw_modules\claw_skill)
+NOTICE: [25/68] esp_painter (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\esp_painter)
+NOTICE: [26/68] espressif/button (4.2.0)
+NOTICE: [27/68] espressif/cmake_utilities (0.5.0)
+NOTICE: [28/68] espressif/esp-dsp (1.8.2)
+NOTICE: [29/68] espressif/esp_board_manager (0.5.8)
+NOTICE: [30/68] espressif/esp_cam_sensor (2.1.0)
+NOTICE: [31/68] espressif/esp_codec_dev (1.5.11)
+NOTICE: [32/68] espressif/esp_lcd_touch (1.2.1)
+NOTICE: [33/68] espressif/esp_mmap_assets (1.4.0)
+NOTICE: [34/68] espressif/esp_new_jpeg (1.0.2)
+NOTICE: [35/68] espressif/esp_sccb_intf (0.0.8)
+NOTICE: [36/68] espressif/esp_video (2.1.0)
+NOTICE: [37/68] espressif/esp_websocket_client (1.8.0)
+NOTICE: [38/68] espressif/freetype (2.14.2)
+NOTICE: [39/68] espressif/led_strip (3.0.3)
+NOTICE: [40/68] espressif/libpng (1.6.58)
+NOTICE: [41/68] espressif/mcp-c-sdk (1.0.0)
+NOTICE: [42/68] espressif/mdns (1.11.3)
+NOTICE: [43/68] espressif/usb_host_uac (1.3.3)
+NOTICE: [44/68] espressif/usb_host_uvc (2.4.2)
+NOTICE: [45/68] espressif/zlib (1.3.2)
+NOTICE: [46/68] espressif2022/esp_emote_assets (0.1.2)
+NOTICE: [47/68] espressif2022/esp_emote_expression (1.0.0)
+NOTICE: [48/68] espressif2022/esp_emote_gfx (3.0.5)
+NOTICE: [49/68] georgik/lua (5.5.0~7)
+NOTICE: [50/68] laride/heatshrink (0.4.1)
+NOTICE: [51/68] lua_module_audio (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_audio)
+NOTICE: [52/68] lua_module_board_manager (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_board_manager)
+NOTICE: [53/68] lua_module_button (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_button)
+NOTICE: [54/68] lua_module_camera (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_camera)
+NOTICE: [55/68] lua_module_can (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_can)
+NOTICE: [56/68] lua_module_delay (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_delay)
+NOTICE: [57/68] lua_module_display (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_display)
+NOTICE: [58/68] lua_module_esp_heap (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_esp_heap)
+NOTICE: [59/68] lua_module_event_publisher (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_event_publisher)
+NOTICE: [60/68] lua_module_gpio (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_gpio)
+NOTICE: [61/68] lua_module_led_strip (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_led_strip)
+NOTICE: [62/68] lua_module_lora (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_lora)
+NOTICE: [63/68] lua_module_mcpwm (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_mcpwm)
+NOTICE: [64/68] lua_module_storage (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_storage)
+NOTICE: [65/68] lua_module_system (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_system)
+NOTICE: [66/68] lua_module_uart (*) (D:\Desktop\f\esp-claw-cp\components\lua_modules\lua_module_uart)
+NOTICE: [67/68] lvgl/lvgl (9.5.0)
+NOTICE: [68/68] idf (5.5.4)
+-- Selected Board: LilyGo_T_Connect_Pro
+-- Board Path: D:/Desktop/f/esp-claw-cp/application/basic_demo/boards/LilyGo_T_Connect_Pro
+-- ESP-TEE is currently supported only on the esp32c6;esp32h2;esp32c5 SoCs
+NOTICE: Skipping optional dependency: espressif/esp_wifi_remote
+NOTICE: Skipping optional dependency: espressif/esp_hosted
+NOTICE: Skipping optional dependency: lua_module_lcd_touch
+NOTICE: Skipping optional dependency: espressif/button
+NOTICE: Skipping optional dependency: espressif/esp_io_expander
+NOTICE: Skipping optional dependency: espressif/esp_lcd_touch
+NOTICE: Skipping optional dependency: espressif/esp_h264
+NOTICE: Skipping optional dependency: espressif/esp_ipa
+NOTICE: Skipping optional dependency: espressif/usb
+-- Project sdkconfig file D:/Desktop/f/esp-claw-cp/application/basic_demo/sdkconfig
+Loading defaults file D:/Desktop/f/esp-claw-cp/application/basic_demo/sdkconfig.defaults...
+Loading defaults file D:/Desktop/f/esp-claw-cp/application/basic_demo/build_can/basic_demo_partition_auto.defaults...
+-- Compiler supported targets: xtensa-esp-elf
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- USING O3
+-- App "basic_demo" version: 11d4cb0-dirty
+-- Adding linker script D:/Desktop/f/esp-claw-cp/application/basic_demo/build_can/esp-idf/esp_system/ld/memory.ld
+-- Adding linker script D:/Desktop/f/esp-claw-cp/application/basic_demo/build_can/esp-idf/esp_system/ld/sections.ld.in
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.api.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.bt_funcs.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.libgcc.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.wdt.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.version.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.ble_master.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.ble_50.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.ble_smp.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.ble_dtm.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.ble_test.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.ble_scan.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.libc.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/esp_rom/esp32s3/ld/esp32s3.rom.newlib.ld
+-- Adding linker script D:/Espressif/frameworks/esp-idf-v5.5.4/components/soc/esp32s3/ld/esp32s3.peripherals.ld
+-- ESP_CAM_SENSOR: 2.1.0
+-- ESP_VIDEO: 2.1.0
+-- I2C_SUPPORT
+-- I2S_SUPPORT
+-- LCD_SPI_SUPPORT
+-- LEDC_SUPPORT
+-- UART_SUPPOR
+-- RMT_SUPPORT
+-- ESP_MMAP_ASSETS: 1.4.0
+-- Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE) 
+-- ESP_EMOTE_EXPRESSION: 1.0.0
+-- BUTTON: 4.2.0
+-- Partition 'emote' size validation:
+--   File size: 2426K (2484943 bytes)
+--   Partition size: 3072K (0x300000 bytes)
+--   ✓ Partition size validation passed

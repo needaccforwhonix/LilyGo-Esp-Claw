@@ -22,16 +22,16 @@
   {
     "type": "image",
     "name": "status_icon",
-    "align": "GFX_ALIGN_CENTER",
+    "align": "GFX_ALIGN_TOP_LEFT",
     "x": 5,
     "y": 18
   },
   {
     "type": "label",
     "name": "toast_label",
-    // "align": "GFX_ALIGN_CENTER",
+    "align": "GFX_ALIGN_TOP_MID",
     "x": 0,
-    "y": 0,
+    "y": 20,
     "width": 240,
     "height": 40,
     "label": {
