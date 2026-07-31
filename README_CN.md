@@ -112,7 +112,14 @@ esptool --chip esp32s3  --baud 921600 --before default_reset --after hard_reset 
 **控制硬件**
 
 - 使连接到 GPIO8 的继电器模块每 2 秒自动开启和关闭一次，每次开启和关闭之间间隔 0.5 秒，并无限循环。
+
 - 在显示屏上显示 "Hello， ESP-Claw!"，显示时间为 5 秒。
+
+- 列出 CAN/RS232/RS485 脚本，然后使用 lua_run_script_async 运行 builtin/can_sender.lua，name 设置为 can_sender，exclusive 设置为 display，timeout_ms 设置为 0
+
+- 列出 CAN/RS232/RS485 脚本，然后使用 lua_run_script_async 运行 builtin/can_receiver.lua，name 设置为 can_receiver，exclusive 设置为 display，timeout_ms 设置为 0
+
+  
 
 **询问记忆**
 

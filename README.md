@@ -113,6 +113,7 @@ esptool --chip esp32s3  --baud 921600 --before default_reset --after hard_reset 
 
 - Make a relay module connected to GPIO8 automatically switch on and off every 2 seconds, with an interval of 0.5 seconds between each on and off, and keep looping indefinitely.
 - Draw Hello, ESP-Claw! on the display，Display for 5 seconds.
+- List the CAN/RS232/RS485 scripts, then use lua_run_script_async to run the builtin/can_receiver.lua, with name set to can_receiver, exclusive set to display, and timeout_ms set to 0
 
 **Memory**
 
