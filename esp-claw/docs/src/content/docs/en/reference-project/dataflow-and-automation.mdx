@@ -4,7 +4,8 @@ description: How events enter the router, how rules act, and how outputs reach t
 ---
 
 import LinkToSource from '@/components/LinkToSource.astro';
-import { LinkCard, Aside } from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+import { LinkCard } from 'starlight-theme-nova/components'
 import { Code } from 'starlight-theme-nova/components'
 import RouterRulesSchema from '@/assets/router_rules.schema.json?raw';
 
@@ -36,7 +37,7 @@ The **order** of rules in `router_rules.json` is evaluation order. Each rule typ
     | Action | Typical use |
     |--------------|----------|
     | `call_cap` | Run a capability without the LLM |
-    | `run_agent` | Asynchronously submit to `claw_core`; Agent response is published back via `agent_response` event |
+    | `run_agent` | Asynchronously submit to `claw_core`; Agent response is published back via `out_message` event |
     | `run_script` | Run a Lua script |
     | `send_message` | Send IM via outbound binding |
     | `emit_event` | Emit a new Event back into `claw_event_router` |
@@ -46,7 +47,35 @@ The **order** of rules in `router_rules.json` is evaluation order. Each rule typ
   For actions such as `run_script`, `send_message`, and `emit_event`, put parameters under `actions[*].input` (for example, `{"type":"run_script","input":{"path":"demo.lua"}}`) instead of at the action object's top level.
 </Aside>
 
-`basic_demo` ships a starter `router_rules.json` for basic IM flows. See <LinkToSource relativePath="application/basic_demo/fatfs_image/router_rules/router_rules.json" />.
+`match.text` uses exact matching by default. To build command-style rules, set `match.text_match_rule` to `prefix`; the router left-trims the incoming text, requires a token boundary after the command, and exposes the argument text as `{{match.remainder}}`.
+
+```json
+{
+  "id": "run_script_command",
+  "match": {
+    "event_type": "message",
+    "event_key": "text",
+    "content_type": "text",
+    "text": "/run",
+    "text_match_rule": "prefix"
+  },
+  "actions": [
+    {
+      "type": "run_script",
+      "input": {
+        "path": "/fatfs/skills/runner/scripts/run.lua",
+        "args": {
+          "command": "{{match.remainder}}"
+        }
+      }
+    }
+  ]
+}
+```
+
+Matched text templates include `{{match.text}}`, `{{match.rule}}`, and `{{match.remainder}}`.
+
+`edge_agent` ships a starter `router_rules.json` for basic IM flows. See <LinkToSource relativePath="application/edge_agent/fatfs_image/router_rules/router_rules.json" />.
 
 Full syntax is captured in the JSON Schema.
 
@@ -56,7 +85,7 @@ Full syntax is captured in the JSON Schema.
 </details>
 
 <Aside type="tip" title="Editing router_rules.json by hand">
-    In `basic_demo`, the file lives at `/fatfs/router_rules/router_rules.json`.
+    In `edge_agent`, the file lives at `/fatfs/router_rules/router_rules.json`.
     Prefer Console commands to edit rules, but you can also edit via the Web file manager.
 
     **Run `auto reload` after changes.**
@@ -114,19 +143,19 @@ fallback_check -> run_default: "yes"
 fallback_check -> done: "no"
 ```
 
-## `agent_response` Event and Outbound Messages
+## `out_message` Event and Outbound Messages
 
-When the `run_agent` action is triggered, the Agent's response is not returned synchronously. Instead, it is published back to the Event Router as an asynchronous event of type `agent_response`.
+When the `run_agent` action is triggered, the Agent's response is not returned synchronously. Instead, it is published back to the Event Router as an asynchronous event of type `out_message`.
 
-To send the Agent's response to an IM channel, you need to configure a routing rule for `agent_response`, for example:
+To send the Agent's response to an IM channel, you need to configure a routing rule for `out_message`, for example:
 
 ```json
 {
-  "id": "agent_response_send_message",
+  "id": "agent_out_message_send_message",
   "consume_on_match": true,
   "match": {
     "source_cap": "claw_core",
-    "event_type": "agent_response",
+    "event_type": "out_message",
     "content_type": "text"
   },
   "actions": [
@@ -163,7 +192,7 @@ Accordingly, the framework offers two cancellation layers (C APIs):
 
 ## `agent_stage` Event and Execution Progress Notifications
 
-Besides the final `agent_response`, `claw_core` can also publish `agent_stage` events during multi-round tool calling, which can be used to push staged tool-call progress information.
+Besides the final `out_message`, `claw_core` can also publish `agent_stage` events during multi-round tool calling, which can be used to push staged tool-call progress information.
 
 The `agent_stage` event structure is:
 - `source_cap`: `claw_core`
@@ -175,7 +204,7 @@ To auto-publish `agent_stage` events, adjust this menuconfig option: <kbd>(Top)<
 - With <kbd>Simple</kbd>, `agent_stage` events are not published at the routing layer.
 
 `agent_stage` events can be routed to channels such as IM to provide real-time progress updates.
-For example, `basic_demo` includes rule `agent_stage_im_notify` in <LinkToSource relativePath="application/basic_demo/fatfs_image/router_rules/router_rules.json" />. When Verbose is enabled and this rule matches, it sends `{{event.text}}` from `agent_stage` back to the source IM conversation.
+For example, `edge_agent` includes rule `agent_stage_im_notify` in <LinkToSource relativePath="application/edge_agent/fatfs_image/router_rules/router_rules.json" />. When Verbose is enabled and this rule matches, it sends `{{event.text}}` from `agent_stage` back to the source IM conversation.
 
 ## Scheduled Dispatch
 
@@ -203,7 +232,7 @@ scheduler --trigger <id>             # trigger once immediately
 
 ### Scheduler LLM Tools
 
-`cap_scheduler` registers tools like `scheduler_list`, `scheduler_get`, `scheduler_add`, `scheduler_enable`, `scheduler_disable`, `scheduler_pause`, `scheduler_resume`, `scheduler_trigger_now`, and `scheduler_reload`. These tools are available after activating the `cap_scheduler` Skill.
+`cap_scheduler` registers tools like `scheduler_list`, `scheduler_get`, `scheduler_add`, `scheduler_update`, `scheduler_remove`, `scheduler_enable`, `scheduler_disable`, `scheduler_pause`, `scheduler_resume`, `scheduler_trigger_now`, and `scheduler_reload`. `cap_scheduler` is visible to the LLM by default and does not require Skill activation to use.
 
 `cap_router_mgr` registers tools like `list_router_rules`, `get_router_rule`, `add_router_rule`, `update_router_rule`, `delete_router_rule`, and `reload_router_rules`.
 
@@ -215,10 +244,10 @@ scheduler --trigger <id>             # trigger once immediately
 
 <LinkCard href="@lang/reference-project/console-usage" title="Console usage" description="Basic Console command usage" />
 
-Event Router provides two sets of Console commands. The `auto` command comes from `basic_demo`, and the `event_router` command comes from `cap_router_mgr`. Both are functionally equivalent and operate on the same set of rules.
+Event Router provides two sets of Console commands. The `auto` command comes from `edge_agent`, and the `event_router` command comes from `cap_router_mgr`. Both are functionally equivalent and operate on the same set of rules.
 
 ```sh
-# auto command (provided by basic_demo)
+# auto command (provided by edge_agent)
 auto reload                  # reload router_rules.json
 auto rules                   # dump current rules JSON
 auto rule <id>               # show one rule JSON

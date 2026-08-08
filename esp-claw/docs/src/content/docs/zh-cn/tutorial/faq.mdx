@@ -20,13 +20,13 @@ import { Aside } from '@astrojs/starlight/components';
 
 **排查建议：**
 1. 通过 SoftAP 下的 Web 配置页，修改 Wi-Fi SSID 与密码，连接到 2.4G Wi-Fi。[➡️Web 配置](@lang/tutorial/web-config)
-2. 使开发版靠近路由器。如果开发版带天线座，检查与天线连接是否良好。
+2. 使开发板靠近路由器。如果开发板带天线座，检查与天线连接是否良好。
 
 ### `ask` 超时或没有回复
 
 **常见原因：**
 - 设备访问不了 LLM 云端（DNS、防火墙、地区网络）。
-- API Key、profile、model 不匹配或过期。
+- API Key、backend_type、model 不匹配或过期。
 - 模型过慢，超过路由层等待 `claw_core` 的时间（日志里会有线索）。
 - Event Router 规则不正确，消息无法正确路由。
 
@@ -62,11 +62,25 @@ import { Aside } from '@astrojs/starlight/components';
 
 ## Agent 与工具
 
+### Agent 一直无法完成某个任务
+
+**典型症状：**
+- Agent 声称自己完成了某个任务，但实际没有完成。后续重复指令，Agent 仍然无法完成。
+
+**常见原因：**
+- LLM 可能因为在之前调用了错误的工具，导致后续 LLM 一直参考错误的上下文。
+- LLM 的能力欠佳，无法正确完成动作。
+
+**排查建议：**
+
+1. 向 Agent 发送 `/new` 命令，切换至新 Session。
+2. 更换能力较强的模型，或缩短历史上下文。
+
 ### 模型「看不到」某个工具
 
 **常见原因：**
 
-- 该工具所在 **group** 不在 `claw_cap_set_llm_visible_groups` 白名单内（demo 默认是 `cap_files`、`cap_skill`、`cap_system`、`cap_lua`，完整结构化记忆模式还包含 `claw_memory`）。
+- 该工具所在 **group** 不在 `claw_cap_set_llm_visible_groups` 白名单内（demo 默认是 `cap_files`、`cap_scheduler`、`cap_lua`、`cap_skill`、`cap_llm_inspect`、`cap_http_request`、`cap_web_search`、`cap_router_mgr`，完整结构化记忆模式还包含 `claw_memory`）。
 - 需要 **激活技能** 后，模型才会同时拿到工具文档与对应 group 的可见性。
 
 **排查建议：**

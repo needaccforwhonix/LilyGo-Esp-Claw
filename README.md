@@ -14,7 +14,36 @@ Compatible device：
 |               |                                                              |
 |               |                                                              |
 
-# `1` Esp-Claw👋
+# News
+
+- 2026/08/08 : 
+
+  - Add LilyGO T-Connect-Pro board configuration
+
+  - Add board manager support
+
+  - Add ESP32-S3-R8 configuration with 16MB Flash and 8MB PSRAM
+
+  - Add LCD initialization support for ST7796
+
+  - Add CST226SE touch controller support
+
+  - Add SX1262 LoRa peripheral configuration
+
+  - Add communication peripheral configurations including:
+
+    - TWAI CAN
+
+    - RS485 UART
+
+    - RS232 UART
+
+    - W5500 Ethernet
+
+> \[!IMPORTANT]
+> If you encounter a problem during use, first check whether the modem's current firmware version is the latest.
+
+# 1` Esp-Claw👋
 
 * ESP-Claw is a Chat Coding AI agent framework for IoT devices. It defines device behavior through conversation and completes the full loop of sensing, reasoning, decision-making, and execution locally on Espressif chips.
 
@@ -58,9 +87,23 @@ For ESP32-S3 use the following command to write
 esptool --chip esp32s3  --baud 921600 --before default_reset --after hard_reset write_flash -z --flash_mode dio --flash_freq 80m 0x0 firmware.bin
 ```
 
-# `3` Web configuration
+# `3` Web Console
 
-1. Connect to the hotspot Wi-Fi of the device that has been turned on (name: **LilyGo-EspClaw-xxxxxx**)
+`edge_agent` starts the Web Console after the Wi-Fi stack is ready, providing chat, status view, and configuration features.
+
+\[!IMPORTANT]
+	**`edge_agent` is not intended for production use**
+	**The `edge_agent` Web Console assumes a trusted environment and returns almost all information.**
+
+​	**Do not expose the Web configuration page port to the public Internet.**
+​	**The retained SoftAP console also has full privileges. Set a password or enable auto-disable SoftAP when possible.**。
+​	**The service runs on LAN and does not use HTTPS by default.**
+​	**The service runs on LAN and does not use HTTPS by default.**
+​	**The configuration page can download almost all content in the filesystem.**
+
+## How to connect?
+
+1. Connect to the hotspot Wi-Fi of the device that has been turned on (name: **esp-claw-xxxxxx**)
 
 2. In the browser open: [link](https://192.168.4.1) (192.168.4.1).
 
@@ -74,126 +117,161 @@ esptool --chip esp32s3  --baud 921600 --before default_reset --after hard_reset 
    >
    > Your computer or phone must be on the same LAN as the board.After setting up the WiFi connection, you can log in to the configuration page using the device's IP address.
 
-4. Configure LLM: Supports GPT (OpenAI), Qwen (Alibaba Bailian), Claude (Anthropic), and DeepSeek (DeepSeek API). Generate an API Key as prompted and enter it.
-
-   > \[!TIP]
-   >
-   > 🤖 Please select a model with strong reasoning ability
-   >
-   > ESP-Claw’s self-programming, complex tool combination, and other advanced features rely on the ability of strong reasoning models. We recommend using GPT-5.4, Qwen3.6-plus, Claude4.6-sonnet, DeepSeek v4 Pro, or similar performance models to get the best experience.
-
-5. Configure chat apps to connect: currently supports Telegram, QQ Bot (OpenClaw), Feishu, and WeChat ClawBot. You can fill several at once.
-
-   | Chat app       | Setting                                    | Help                                                         |
-   | -------------- | ------------------------------------------ | ------------------------------------------------------------ |
-   | Telegram       | Bot token                                  | [Telegram Bot docs](https://core.telegram.org/bots#6-create-a-token) |
-   | QQ Bot         | ID and secret                              | [QQ Bot site](https://q.qq.com/qqbot/openclaw/)              |
-   | Feishu         | App ID and secret                          |
-   | WeChat ClawBot | Automatic configuration via WeChat QR scan | N/A                                                          |
-
-6. Configure search engine:
-
-   > \[!TIP]
-   >
-   > After a search engine is configured, ESP-Claw can retrieve up-to-date information from the web. Weather queries also depend on search engine support.
-   >
-   > Tavily is recommended and provides a free quota.
-
-   Open [Tavily Dashboard](https://app.tavily.com/), sign up and sign in, copy an API Key, then paste it into the Tavily field in the web flasher.
-
-7. After saving the modified content, press the reset button to restart, and then you can start experiencing it.
-
-**Everyday Q&A**
-
-- Hi, what capabilities do you currently have?
-- Any AI news lately?
-- At 12% annual interest, what will 10,000 become after 3 years?
-
-**Hardware control**
-
-- Make a relay module connected to GPIO8 automatically switch on and off every 2 seconds, with an interval of 0.5 seconds between each on and off, and keep looping indefinitely.
-- Draw Hello, ESP-Claw! on the display，Display for 5 seconds.
-- List the CAN/RS232/RS485 scripts, then use lua_run_script_async to run the builtin/can_receiver.lua, with name set to can_receiver, exclusive set to display, and timeout_ms set to 0
-
-**Memory**
-
-- Remember that I prefer concise answers
-- Do you still remember my name?
+4. Configure LLM information.
 
 
+## System Status
 
-# `4` Page layout
+The System Status page shows basic ESP-Claw status, including network information, IP address, Wi-Fi mode, SoftAP SSID, and SoftAP IP.
 
-The configuration page is divided into three tabs:
+## Web Chat
 
-- **Configuration**: System settings (Wi-Fi, LLM, IM, search, time zone, etc.)
-- **Memory**: Memory file management (long-term memory and profile memory)
-- **File Manager**: Filesystem management
+Web Chat lets you interact with ESP-Claw without configuring extra IM channels. Web Chat also supports regular features and triggering Event Router capabilities through messages. For example, you can use `/new` to create and switch Session.
 
-### System settings
+Web Chat currently does not support receiving image attachments.
 
-#### LLM provider selection
+Web Chat unavailable?
 
-The page provides an **LLM Provider** dropdown menu. Selecting a provider automatically fills in the corresponding `Profile`, `Base URL`, `Backend Type`, and `Auth Type`:
+Check whether Local IM is disabled on the Capabilities management page.
 
-| Provider        | Profile           | Base URL                                            |
-| --------------- | ----------------- | --------------------------------------------------- |
-| OpenAI          | `openai`          | `https://api.openai.com/v1`                         |
-| Qwen Compatible | `qwen_compatible` | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
-| Anthropic       | `anthropic`       | `https://api.anthropic.com/v1`                      |
-| Custom          | Custom            | Custom                                              |
+## System Settings
 
-After choosing a provider, you only need to fill in your `API Key` and `Model`.
+### Basic Settings
 
-#### Enable WeChat ClawBot
+Basic settings include Wi-Fi and timezone settings.
 
-WeChat ships ClawBot as a plugin—enable it in WeChat first, then log in via the Web config page:
+- Wi-Fi settings configure SSID and password.
 
-1. **Enable the WeChat ClawBot plugin**
+   
 
-   WeChat Me → Settings → Plugins → ClawBot, and turn it on.
+  Requires Restart
 
-   > \[!TIP]
-   >
-   > If you cannot find the plugin, update WeChat to the latest version.
+  - Currently, except ESP32-C5, other chips only support 2.4 GHz Wi-Fi.
+  - Empty password means the current Wi-Fi has no password.
 
-2. **Log in on the Web config page**
+- SoftAP settings configure SoftAP SSID, password, and start/stop behavior.
 
-   Open the Web config page. You can log in via two ways:
+   
 
-   - **Scan QR login**: Click 「Generate QR」 to create a QR code, then in WeChat Me → Settings → Plugins → ClawBot, use Scan to read the code.
-   - **Link login**: Click 「Generate QR」 to create a QR code first, then click 「Open login link」 to open the login page in a new window and follow the prompts.
+  Requires Restart
 
-3. **Signed in**
+  - ESP-Claw enables SoftAP by default for provisioning and configuration adjustments.
+  - Empty SSID means using the MAC-based default SSID (`esp-claw-XXXXXX`).
+  - Empty password means open hotspot. If password is set, it must be at least 8 characters.
+  - You can configure SoftAP to auto-disable after successful Wi-Fi connection. **For security, this is recommended.**
 
-   After login, the Web page shows a confirmation.
+- In Advanced settings, timezone settings adjust device timezone.
 
-4. **Save**
+   
 
-   Click Save Changes to persist all settings.
+  Requires Restart
 
-   > \[!TIP]
-   >
-   > The UI can edit WeChat Base URL & WeChat CDN Base URL, but WeChat currently only works with the default base URL—do not change it.
+  - Must be in POSIX TZ string format. Recommended reference: [this table](https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv).
+  - Example: timezone for Beijing/Hong Kong/Singapore is `CST-8`.
+  - Timezone affects Schedule task execution and the time provided to LLM.
+  - On first setup, the system attempts to infer timezone from browser automatically. This inference may be inaccurate and cannot infer DST details.
 
-### Memory manager
+### LLM Settings Requires Restart
 
-The Memory manager page is used to view and manage the long-term memory, soul, identity, and user information in the memory system.
+LLM settings configure provider, API key, model, and other LLM options. For easier onboarding, ESP-Claw includes presets for common LLM providers. For those providers, you only need API key and model name.
 
-- **Long-term memory** is a human-readable file generated by the system based on structured memory. Modifying this file does not directly change the structured memory, so it only provides a read-only view function.
-- **Soul**, **Identity**, and **User Information** are editable files used to record the personalized information of the device and the user.
+ESP-Claw also supports custom LLM providers. Currently, ESP-Claw supports two backend types: OpenAI-compatible API and Anthropic-compatible API. You need to provide Base URL manually, and configure fields like Max Tokens field name if required by the provider.
 
-After chatting with ESP-Claw, you can click the “Refresh” button or “Refresh All” button to refresh the memory files and view the latest memory content.
+ESP-Claw recommends models at least comparable to `gpt-5.4`, `qwen3.6-plus`, `deepseek-v4-pro`, and `claude-sonnet-4-6` to unlock its full potential. If you use other models, tune LLM advanced options such as “supports vision input” to match the model capabilities.
 
-### File manager
+Pay attention to Base URL format
 
-The Web UI includes a simple file manager so you can browse and read/write files directly, without going through the LLM.
+For custom LLM providers, the Base URL path must be kept up to the version segment:
 
-By default, the file manager is read-only. Write operations are available only after enabling Admin mode (Dev Mode). After enabling Admin mode, you can manually add Skills, edit automation rules, modify Lua scripts, and more.
+- Keep only the part **before** `/chat/completions` (OpenAI format) or `/messages` (Anthropic format);
+- Do not end with `/`.
 
-> \[!Warning]
->
-> After enabling Admin mode, operate carefully. Deleting critical files or writing invalid JSON may cause system malfunction or even reboot loops.
+For example:
+
+```
+https://api.openai.com/v1/chat/completionsvvvvvvvv Base URL vvvvvvvhttps://api.openai.com/v1https://api.anthropic.com/v1/messagesvvvvvvvvvv Base URL vvvvvvvvhttps://api.anthropic.com/v1https://api.deepseek.com/chat/completionsvvvvvvv Base URL vvvvvvvhttps://api.deepseek.com
+```
+
+
+
+### IM Settings Requires Restart
+
+The IM settings page lets you connect or adjust different instant messaging platforms, including WeChat, QQ, Feishu, Telegram, and more.
+
+#### WeChat
+
+To enable WeChat, click “Generate QR” and scan it with WeChat “Scan” to complete setup. Save and restart for changes to take effect.
+
+WeChat Base URL and CDN Base URL in Advanced settings usually do not need changes. Default values are:
+
+```
+https://ilinkai.weixin.qq.com # WeChat Base URLhttps://novac2c.cdn.weixin.qq.com/c2c # WeChat CDN Base URL
+```
+
+
+
+#### QQ
+
+To enable QQ, create a QQ bot on [QQ Open Platform](https://q.qq.com/qqbot/openclaw/login.html), then fill App ID and App Secret in the corresponding fields. Save and restart for changes to take effect.
+
+#### Feishu
+
+To enable Feishu, create a Feishu bot app on [Feishu Open Platform - Create Feishu Agent App](https://open.feishu.cn/page/launcher?from=backend_oneclick), then fill App ID and App Secret in the corresponding fields. Save and restart for changes to take effect.
+
+Note: Lark international edition is not supported yet.
+
+#### Telegram
+
+To enable Telegram, chat with [@botfather](https://t.me/botfather) in Telegram app, create a bot, and obtain Bot Token. Then fill the Bot Token field. Save and restart for changes to take effect.
+
+### Network & Search Settings
+
+ESP-Claw can connect to Brave or Tavily search APIs to retrieve online resources during runtime; it can also issue HTTP requests (GET/POST/…) for real-time online access.
+
+**Search API Keys**: optional. Once configured, online resources can be retrieved via search APIs.
+
+- Brave Search API Key: Brave Search API Key, see [Brave API docs](https://api-dashboard.search.brave.com/documentation/guides/authentication).
+- Tavily API Key: Tavily API Key, see [Tavily API docs](https://docs.tavily.com/documentation/quickstart).
+
+**HTTP Requests**: configure HTTP allowlist. Wildcard `*` is supported; standalone `*` allows all domains/IPs.
+
+## Memory Management
+
+The Memory Management page is for viewing long-term memory and managing “Soul”, “Identity”, and “User Info” in the memory system.
+
+- **Long-term Memory** is a human-readable file generated from structured memory. Editing this file does not directly modify structured memory, so it is read-only for inspection.
+- **Soul**, **Identity**, and **User Info** are editable files used to store personalized information for the device and user.
+
+After chatting with ESP-Claw, click “Refresh” or “Refresh All” to refresh memory files and view the latest memory content.
+
+[Memory Reference](https://esp-claw.com/en/reference-project/memory)Learn details about long-term memory, Soul, Identity, and User Info
+
+## Capabilities Management
+
+The Capabilities Management page controls whether each ESP-Claw capability is enabled. If disabled, the capability is not loaded. By default, all capabilities are enabled. You can enable or disable each capability by checking or unchecking it.
+
+To reduce context length, not all capabilities are LLM-visible by default. Some capabilities provide Skills. When LLM chooses to activate the corresponding Skill, that capability automatically provides its tools to the LLM.
+
+## Lua Modules Management Requires Restart
+
+Lua Modules Management controls whether Lua modules **translated from IDF low-level modules** are enabled. These are different from Lua modules provided by Skills.
+
+[Lua Modules Reference](https://esp-claw.com/en/reference-cap/lua-modules)Learn details about Lua modules
+
+## File Management
+
+The Web configuration page provides simple file management, so you can browse and read/write filesystem files directly without going through LLM. For ESP-Claw runtime filesystem structure, see [Filesystem layout](https://esp-claw.com/en/reference-project/boot-and-runtime#文件系统).
+
+By default, File Management is read-only. Write actions are enabled only after turning on “Admin Mode” (Dev Mode). After enabling “Admin Mode”, you can manually add Skills, edit automation rules, modify Lua scripts, and more.
+
+Warning
+
+After enabling “Admin Mode”, operate carefully. Deleting important files or invalid JSON may cause system failures, even reboot loops.
+
+Note
+
+- Online file read/write has size limits, depending on `CONFIG_HTTP_MAX_UPLOAD_SIZE` when firmware is built.
+- After changing automation rules, remember to run `auto reload` in Console (see [Console usage](https://esp-claw.com/en/reference-project/console-usage)) or restart.
 
 # `5 `FAQ
 
@@ -209,6 +287,36 @@ By default, the file manager is read-only. Write operations are available only a
 
 1. Open the Web config page under SoftAP, update Wi-Fi SSID and password, and connect to 2.4 GHz Wi-Fi.
 
+### `ask` times out or never replies
+
+**Typical causes:**
+
+- Device cannot reach the LLM cloud (DNS, firewall, region).
+- API key / backend_type / model mismatch or expired key.
+- Model slower than router wait for `claw_core` (check logs).
+- Event Router rules mis-route messages.
+
+**What to try:**
+
+1. Look for HTTP/TLS errors in logs.
+2. Confirm LLM settings are complete. [➡️ Configuration](https://esp-claw.com/en/reference-project/configuration)
+3. Validate Event Router rules and routing.
+
+### Messages sent via IM get no response
+
+**Typical causes:**
+
+- ESP-Claw never receives IM traffic or cannot call the IM API to send.
+- LLM runtime failure.
+- Event Router rules mis-route messages.
+
+**What to try:**
+
+1. Check HTTP status and error text in logs.
+2. Confirm the IM message was ingested—serial logs should show it. [➡️ ESP-Claw cannot send/receive IM](https://esp-claw.com/en/tutorial/faq/#esp-claw-cannot-send-or-receive-im)
+3. Run `ask "hello"` on serial; if that works, the LLM path is OK. [➡️ `ask` times out](https://esp-claw.com/en/tutorial/faq/#ask-times-out-or-never-replies)
+4. Re-check Event Router rules and routing.
+
 ### ESP-Claw cannot send or receive IM
 
 **Typical causes:**
@@ -223,7 +331,74 @@ By default, the file manager is read-only. Write operations are available only a
 2. Re-enter IM settings and reboot.
 3. Verify Feishu bot permissions.
 
+## Agent and tools
 
+### The Agent cannot complete a task
+
+**Typical symptoms:**
+
+- The Agent claims it completed a task but did not. Subsequent instructions, the Agent still cannot complete.
+
+**Common causes:**
+
+- The LLM may have called the wrong tool in the previous turn, causing the LLM to continue to reference the wrong context.
+- The LLM’s ability is not strong enough to correctly complete the action.
+
+**What to try:**
+
+1. Send `/new` command to switch to a new Session.
+2. Use a stronger model or shorten history.
+
+### The model “does not see” a tool
+
+**Typical causes:**
+
+- The tool’s **group** is outside `claw_cap_set_llm_visible_groups` (demo defaults to `cap_files`, `cap_scheduler`, `cap_lua`, `cap_skill`, `cap_llm_inspect`, `cap_http_request`, `cap_web_search`, `cap_router_mgr`; full structured-memory mode also includes `claw_memory`).
+- A **Skill must be activated** so the model gets both the tool docs and that group’s visibility.
+
+**What to try:**
+
+1. `cap list` to confirm descriptors registered.
+2. `skill --activate <id> --session <current session>` then retry chat.
+
+### The model claims it called a tool but nothing happens
+
+**Typical causes:**
+
+- Hallucinated tool call—no real tool invocation.
+- Tool failed but the reply hid the error.
+- Overlong context causing odd behavior.
+
+**What to try:**
+
+1. Read `claw_core` logs for tool name summaries.
+2. Manually `cap call <name> '<json>'`.
+3. Use a stronger model or shorten history.
+
+### Self-programming and other advanced features underperform
+
+**Typical causes:**
+
+- The model’s reasoning is too weak to reliably generate Lua code or complex tool calls.
+
+**What to try:**
+
+- Self-programming and complex tool orchestration depend on strong reasoning models; we recommend GPT-5.4 or similarly capable models for the best experience.
+- With weaker models, start with simpler tasks (daily Q&A, reminders, and so on).
+
+## Automation and Lua
+
+### Rule changes do not apply
+
+1. Validate JSON.
+2. `auto reload`.
+3. `auto emit_message` / `auto emit_trigger` for a minimal repro.
+
+### Lua execution fails
+
+- Path under the managed root? Extension `.lua`?
+- Args match script expectations?
+- Async task timing out (try synchronous run).
 
 
 

@@ -3,7 +3,7 @@ title: 准备物料
 description: 准备 ESP32-S3 面包板形态 ESP-Claw 的硬件物料。
 ---
 
-import { LinkCard } from '@astrojs/starlight/components';
+import { LinkCard } from 'starlight-theme-nova/components'
 
 import ESP32S3DevKitC1Png from "@/assets/images/esp32-s3-devkitc-1-v1.1-isometric.png?url";
 import ESP32S3DevKitC1WebP from "@/assets/images/esp32-s3-devkitc-1-v1.1-isometric.webp?url";
@@ -12,11 +12,11 @@ import BreadboardWebP from "@/assets/images/breadboard-400.webp?url";
 import Ws2812Png from "@/assets/images/ws2812.png?url";
 import Ws2812WebP from "@/assets/images/ws2812.webp?url";
 
-面包板形态的 ESP-Claw 需要一块 ESP32-S3 开发版、一块或更多面包板，以及可选的扩展外设硬件。
+面包板形态的 ESP-Claw 需要一块 ESP32-S3 开发板、一块或更多面包板，以及可选的扩展外设硬件。
 
 ## 必选硬件
 
-### ESP32-S3 开发版
+### ESP32-S3 开发板
 
 ESP32-S3 具有多种子型号，例如 `N8R8`、`N4R2` 等等。`N8` 表示具有 8 MB 的 Flash，`R2` 表示具有 2 MB 的 PSRAM。
 运行 ESP-Claw 需要 **至少 8 MB Flash 和 8 MB PSRAM** 的 ESP32-S3。
@@ -26,17 +26,17 @@ ESP32-S3 具有多种子型号，例如 `N8R8`、`N4R2` 等等。`N8` 表示具�
     <img src={ESP32S3DevKitC1Png} alt="ESP32-S3-DevKitC-1" width="50%" style="display: block; margin: 0 auto;" />
 </picture>
 
-**推荐使用乐鑫官方推出的 ESP32-S3-DevKitC-1 开发版**。官方开发版引出的引脚数量较多，适合用于面包板组装。
+**推荐使用乐鑫官方推出的 ESP32-S3-DevKitC-1 开发板**。官方开发板引出的引脚数量较多，适合用于面包板组装。
 你可以在乐鑫官方网店购买。
 
 <LinkCard 
     title="乐鑫提供的样品购买渠道"
     href="https://www.espressif.com/zh-hans/contact-us/get-samples"
-    description="从乐鑫提供的样品购买渠道购买 ESP32-S3-DevKitC-1 开发版"
+    description="从乐鑫提供的样品购买渠道购买 ESP32-S3-DevKitC-1 开发板"
 />
 
 <LinkCard 
-    title="乐鑫官方淘宝店 ESP32-S3-DevKitC-1 开发版"
+    title="乐鑫官方淘宝店 ESP32-S3-DevKitC-1 开发板"
     href="https://item.taobao.com/item.htm?id=653155344338"
     description="请选择：1-N8R8，不推荐选择带U字样的型号"
 />
@@ -98,13 +98,15 @@ ESP-Claw 支持接入 USB 摄像头扩展视觉能力。即使不使用支持视
     <img src={Ws2812Png} alt="WS2812" width="30%" style="display: block; margin: 0 auto;" />
 </picture>
 
-除了 ESP32-S3-DevKitC-1 开发版自带的一颗 WS2812 灯珠外，你还可以接入 WS2812 灯带/灯环扩展灯光能力。
+除了 ESP32-S3-DevKitC-1 开发板自带的一颗 WS2812 灯珠外，你还可以接入 WS2812 灯带/灯环扩展灯光能力。
 
 受供电能力限制，请勿接入过长的 WS2812 灯带/灯环。
+你可以选择与[演示图型号相同的 WS2812 灯环](https://detail.tmall.com/item.htm?id=994762490273&skuId=6139364670619)。
 
 ### 舵机
 
 ESP-Claw 支持接入舵机扩展机械动作能力。
+市售的普通舵机基本都可使用，例如[这一款](https://item.taobao.com/item.htm?id=1016474722460)。
 
 ---
 

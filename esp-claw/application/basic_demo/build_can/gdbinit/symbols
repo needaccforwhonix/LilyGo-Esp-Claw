@@ -1,9 +1,0 @@
-
-
-# Load bootloader symbols
-set confirm off
-    add-symbol-file D:/Desktop/f/esp-claw-cp/application/basic_demo/build_can/bootloader/bootloader.elf
-set confirm on
-
-# Load application symbols
-file D:/Desktop/f/esp-claw-cp/application/basic_demo/build_can/basic_demo.elf

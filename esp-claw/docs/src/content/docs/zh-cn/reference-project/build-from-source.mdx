@@ -4,6 +4,7 @@ description: 从源码编译与烧录 ESP-Claw。
 ---
 
 import { Steps, Aside, Badge } from '@astrojs/starlight/components';
+import LinkToSource from '@/components/LinkToSource.astro';
 
 
 <Aside>
@@ -25,37 +26,40 @@ import { Steps, Aside, Badge } from '@astrojs/starlight/components';
    pip install esp-bmgr-assist
    ```
 
-   <Aside type="tip">
-      ESP-Claw 使用 ESP Board Manager 适配多种开发版。
+   <Aside title="需要适配新的开发板？" type="tip">
+    ESP-Claw 使用 ESP Board Manager 适配多种开发板。
 
-      如需添加其他开发版，请参考 [ESP Board Manager 文档](https://components.espressif.com/components/espressif/esp_board_manager/)。
+    如需添加其他开发板，请参考 [ESP Board Manager 文档](https://docs.espressif.com/projects/esp-board-manager/zh_CN/latest/create-board/index.html)，
+    将开发板适配文件存放到 <LinkToSource relativePath="application/edge_agent/boards/" />
+
+    欢迎将开发板适配代码通过 Pull Request 提交到 ESP-Claw 仓库。
    </Aside>
 
 2. **获取 ESP-Claw 源码**
 
    ```bash
    git clone https://github.com/espressif/esp-claw.git
-   cd esp-claw/application/basic_demo
+   cd esp-claw/application/edge_agent
    ```
 
-3. **选择开发版**
+3. **选择开发板**
 
    ```bash
-   idf.py gen-bmgr-config -c ./boards -b <board_name>
-   # 例如: idf.py gen-bmgr-config -c ./boards -b esp32_S3_DevKitC_1
+   idf.py bmgr -c ./boards -b <board_name>
+   # 例如: idf.py bmgr -c ./boards -b esp32_S3_DevKitC_1
    ```
 
-   <Aside type="tip" title="支持的开发版列表">
-      你可以通过以下命令列出支持的开发版列表：
+   <Aside type="tip" title="支持的开发板列表">
+      你可以通过以下命令列出支持的开发板列表：
       ```bash
-      idf.py gen-bmgr-config -c ./boards -l
+      idf.py bmgr -c ./boards -l
       ```
 
-      也可以在 `application/basic_demo/boards` 目录下查阅支持的开发版列表。
+      也可以在 <LinkToSource relativePath="application/edge_agent/boards/" /> 下查阅支持的开发板列表。
    </Aside>
 
    <Aside type="note" title="为什么不需要 set-target">
-      ESP Board Manager 会自动根据开发版选择合适的芯片型号，因此不需要 `idf.py set-target`。
+      ESP Board Manager 会自动根据开发板选择合适的芯片型号，因此不需要 `idf.py set-target`。
    </Aside>
 
 4. **调整 menuconfig 配置** <Badge variant="tip" text="可选" />
@@ -64,7 +68,7 @@ import { Steps, Aside, Badge } from '@astrojs/starlight/components';
    idf.py menuconfig
    ```
    推荐修改以下配置：
-   - <kbd>(Top)</kbd> → <kbd>Basic Demo Config</kbd>
+   - <kbd>(Top)</kbd> → <kbd>App Claw Config</kbd>
      - 参考 [配置说明](@lang/reference-project/configuration#basic-config) 配置基础设置。
    - <kbd>(Top)</kbd> → <kbd>Component config</kbd> → <kbd>ESP-Claw Core</kbd> → <kbd>Agent stage notification verbosity</kbd>
      - 默认 Simple；

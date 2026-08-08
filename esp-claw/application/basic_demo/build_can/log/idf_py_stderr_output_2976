@@ -1,1 +1,0 @@
-Command: D:\Espressif\python_env\idf5.5_py3.11_env\Scripts\python.exe -m esptool --chip esp32s3 merge_bin -o merged-binary.bin -f raw @flash_args

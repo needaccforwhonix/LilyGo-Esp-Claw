@@ -3,7 +3,8 @@ title: Memory
 description: 结构化长期记忆与会话历史：摘要标签检索、会话历史隔离与自动抽取机制。
 ---
 
-import { LinkCard, Aside } from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+import { LinkCard } from 'starlight-theme-nova/components'
 
 大语言模型本身是无状态的——每次请求都从零开始。ESP-Claw 通过 `claw_memory` 将两类持久化上下文在请求前注入，使 Agent 表现出「记住」对话与用户的能力。
 
@@ -18,7 +19,7 @@ ESP-Claw 的记忆模块提供两种记忆模式：
 | `Structured memory management`（完整模式） | 使用结构化记录 + 摘要标签目录；需要时通过 `memory_recall` 召回详情 | 默认模式，适合持续使用与自动抽取 |
 | `Lightweight memory`（轻量模式） | 维持 profile 与会话历史，长期记忆以 `MEMORY.md` 文本注入为主 | 资源受限或希望更简化链路 |
 
-`basic_demo` 默认使用完整模式，可在 menuconfig <kbd>(Top)</kbd> → <kbd>Basic Demo Config</kbd> → <kbd>Memory management mode</kbd> 切换。
+`edge_agent` 默认使用完整模式，可在 menuconfig <kbd>(Top)</kbd> → <kbd>App Claw Config</kbd> → <kbd>App Claw memory management mode</kbd> 切换。
 
 ## 会话历史：对话内的连贯性
 
@@ -79,7 +80,6 @@ ESP-Claw 不依赖向量数据库，而采用 **摘要标签** 机制实现轻�
 
 <Aside type="caution" title="注意数据来源">
   在完整模式中，`MEMORY.md` 不是记忆检索的唯一事实来源；检索与更新以结构化文件（`memory_records.jsonl`、`memory_index.json`）为准。
-  若用户明确要求“查看你记得什么”“更新/删除某条已记住信息”，应先召回再回答。
 </Aside>
 
 ## 使用建议

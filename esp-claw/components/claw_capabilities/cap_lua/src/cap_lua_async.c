@@ -5,6 +5,7 @@
  */
 #include "cap_lua_internal.h"
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -12,6 +13,8 @@
 #include <string.h>
 
 #include "claw_task.h"
+#include "esp_attr.h"
+#include "esp_check.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_random.h"
@@ -22,6 +25,8 @@
 
 static const char *TAG = "cap_lua_async";
 
+#define CAP_LUA_JOB_EVENT_OBSERVER_MAX 8
+
 typedef struct {
     bool used;
     cap_lua_job_status_t status;
@@ -31,11 +36,18 @@ typedef struct {
     char path[CAP_LUA_JOB_PATH_MAX];
     char *args_json;
     char *summary;
+    char *log_buf;
+    size_t log_size;
+    size_t log_len;
+    size_t log_start;
+    uint64_t log_seq;
+    bool log_truncated;
     uint32_t timeout_ms;
     time_t created_at;
     time_t started_at;
     time_t finished_at;
     TaskHandle_t task_handle;
+    bool sync_waiter;
     /* Cooperative cancellation flag, polled from the Lua hook. */
     volatile bool stop_requested;
 } cap_lua_job_record_t;
@@ -50,10 +62,27 @@ typedef struct {
 } cap_lua_job_ctx_t;
 
 static SemaphoreHandle_t s_job_lock;
-static cap_lua_job_record_t s_jobs[CAP_LUA_ASYNC_MAX_JOBS];
+static SemaphoreHandle_t s_event_lock;
+static EXT_RAM_BSS_ATTR cap_lua_job_record_t s_jobs[CAP_LUA_ASYNC_MAX_JOBS];
 static SemaphoreHandle_t s_slot_terminal_sem[CAP_LUA_ASYNC_MAX_JOBS];
 static size_t s_running_jobs;
 static bool s_runner_started;
+
+typedef struct {
+    bool used;
+    cap_lua_job_event_cb_t cb;
+    void *user_ctx;
+} cap_lua_job_event_observer_t;
+
+static cap_lua_job_event_observer_t s_event_observers[CAP_LUA_JOB_EVENT_OBSERVER_MAX];
+
+static esp_err_t cap_lua_ensure_event_lock(void)
+{
+    if (!s_event_lock) {
+        s_event_lock = xSemaphoreCreateMutex();
+    }
+    return s_event_lock ? ESP_OK : ESP_ERR_NO_MEM;
+}
 
 const char *cap_lua_job_status_name(cap_lua_job_status_t status)
 {
@@ -84,6 +113,47 @@ static bool cap_lua_job_status_matches(cap_lua_job_status_t status, const char *
     return strcmp(cap_lua_job_status_name(status), filter) == 0;
 }
 
+static void cap_lua_build_job_event_locked(cap_lua_job_event_t *event,
+                                           cap_lua_job_event_type_t type,
+                                           const cap_lua_job_record_t *job)
+{
+    if (!event || !job) {
+        return;
+    }
+
+    memset(event, 0, sizeof(*event));
+    event->type = type;
+    event->status = job->status;
+    strlcpy(event->job_id, job->job_id, sizeof(event->job_id));
+    strlcpy(event->name, job->name, sizeof(event->name));
+    strlcpy(event->exclusive, job->exclusive, sizeof(event->exclusive));
+    strlcpy(event->path, job->path, sizeof(event->path));
+}
+
+static void cap_lua_publish_job_event(const cap_lua_job_event_t *event)
+{
+    cap_lua_job_event_observer_t observers[CAP_LUA_JOB_EVENT_OBSERVER_MAX] = {0};
+    size_t count = 0;
+
+    if (!event || !s_event_lock) {
+        return;
+    }
+
+    if (xSemaphoreTake(s_event_lock, pdMS_TO_TICKS(200)) != pdTRUE) {
+        return;
+    }
+    for (size_t i = 0; i < CAP_LUA_JOB_EVENT_OBSERVER_MAX; i++) {
+        if (s_event_observers[i].used && s_event_observers[i].cb) {
+            observers[count++] = s_event_observers[i];
+        }
+    }
+    xSemaphoreGive(s_event_lock);
+
+    for (size_t i = 0; i < count; i++) {
+        observers[i].cb(event, observers[i].user_ctx);
+    }
+}
+
 static void cap_lua_generate_job_id(char *job_id, size_t size)
 {
     snprintf(job_id, size, "%08x", (unsigned)esp_random());
@@ -97,7 +167,7 @@ static int cap_lua_find_reusable_slot_locked(void)
         if (!s_jobs[i].used) {
             return i;
         }
-        if (cap_lua_status_is_terminal(s_jobs[i].status)) {
+        if (cap_lua_status_is_terminal(s_jobs[i].status) && !s_jobs[i].sync_waiter) {
             if (oldest_terminal < 0 ||
                     s_jobs[i].finished_at < s_jobs[oldest_terminal].finished_at) {
                 oldest_terminal = i;
@@ -170,7 +240,166 @@ static void cap_lua_clear_slot(cap_lua_job_record_t *job)
     }
     free(job->args_json);
     free(job->summary);
+    free(job->log_buf);
     memset(job, 0, sizeof(*job));
+}
+
+static void cap_lua_log_copy_into_ring(char *ring,
+                                       size_t ring_size,
+                                       size_t start,
+                                       const char *text,
+                                       size_t len)
+{
+    size_t first;
+
+    if (!ring || ring_size == 0 || !text || len == 0) {
+        return;
+    }
+
+    first = ring_size - start;
+    if (first > len) {
+        first = len;
+    }
+    memcpy(ring + start, text, first);
+    if (first < len) {
+        memcpy(ring, text + first, len - first);
+    }
+}
+
+static void cap_lua_async_append_log_locked(cap_lua_job_record_t *job,
+                                            const char *text,
+                                            size_t len)
+{
+    size_t original_len = len;
+    size_t overflow;
+    size_t write_pos;
+
+    if (!job || !job->log_buf || job->log_size == 0 || !text || len == 0) {
+        return;
+    }
+
+    if (len >= job->log_size) {
+        text += len - job->log_size;
+        len = job->log_size;
+        job->log_start = 0;
+        job->log_len = job->log_size;
+        job->log_truncated = true;
+        memcpy(job->log_buf, text, len);
+        job->log_seq += original_len;
+        return;
+    }
+
+    if (job->log_len + len > job->log_size) {
+        overflow = job->log_len + len - job->log_size;
+        job->log_start = (job->log_start + overflow) % job->log_size;
+        job->log_len -= overflow;
+        job->log_truncated = true;
+    }
+
+    write_pos = (job->log_start + job->log_len) % job->log_size;
+    cap_lua_log_copy_into_ring(job->log_buf, job->log_size, write_pos, text, len);
+    job->log_len += len;
+    job->log_seq += len;
+}
+
+static void cap_lua_async_log_callback(void *user_ctx, const char *text, size_t len)
+{
+    cap_lua_job_ctx_t *ctx = (cap_lua_job_ctx_t *)user_ctx;
+
+    if (!ctx || !text || len == 0 || !s_job_lock) {
+        return;
+    }
+    if (xSemaphoreTake(s_job_lock, pdMS_TO_TICKS(100)) != pdTRUE) {
+        return;
+    }
+    if (ctx->slot >= 0 &&
+            ctx->slot < CAP_LUA_ASYNC_MAX_JOBS &&
+            s_jobs[ctx->slot].used &&
+            strcmp(s_jobs[ctx->slot].job_id, ctx->job_id) == 0) {
+        cap_lua_async_append_log_locked(&s_jobs[ctx->slot], text, len);
+    }
+    xSemaphoreGive(s_job_lock);
+}
+
+static size_t cap_lua_async_copy_log_range_locked(const cap_lua_job_record_t *job,
+                                                  uint64_t from_seq,
+                                                  size_t max_bytes,
+                                                  char *out,
+                                                  size_t out_size,
+                                                  uint64_t *actual_from,
+                                                  uint64_t *next_seq,
+                                                  bool *truncated)
+{
+    uint64_t earliest;
+    uint64_t available;
+    size_t copy_len;
+    size_t offset;
+    size_t src_pos;
+    size_t first;
+
+    if (actual_from) {
+        *actual_from = 0;
+    }
+    if (next_seq) {
+        *next_seq = 0;
+    }
+    if (truncated) {
+        *truncated = false;
+    }
+    if (!out || out_size == 0) {
+        return 0;
+    }
+    out[0] = '\0';
+
+    if (!job || !job->log_buf || job->log_size == 0 || job->log_len == 0) {
+        if (actual_from) {
+            *actual_from = job ? job->log_seq : 0;
+        }
+        if (next_seq) {
+            *next_seq = job ? job->log_seq : 0;
+        }
+        return 0;
+    }
+
+    earliest = job->log_seq - job->log_len;
+    if (from_seq < earliest) {
+        from_seq = earliest;
+        if (truncated) {
+            *truncated = true;
+        }
+    }
+    if (from_seq > job->log_seq) {
+        from_seq = job->log_seq;
+    }
+
+    available = job->log_seq - from_seq;
+    copy_len = available > SIZE_MAX ? SIZE_MAX : (size_t)available;
+    if (copy_len > max_bytes) {
+        copy_len = max_bytes;
+    }
+    if (copy_len >= out_size) {
+        copy_len = out_size - 1;
+    }
+
+    offset = (size_t)(from_seq - earliest);
+    src_pos = (job->log_start + offset) % job->log_size;
+    first = job->log_size - src_pos;
+    if (first > copy_len) {
+        first = copy_len;
+    }
+    memcpy(out, job->log_buf + src_pos, first);
+    if (first < copy_len) {
+        memcpy(out + first, job->log_buf, copy_len - first);
+    }
+    out[copy_len] = '\0';
+
+    if (actual_from) {
+        *actual_from = from_seq;
+    }
+    if (next_seq) {
+        *next_seq = from_seq + copy_len;
+    }
+    return copy_len;
 }
 
 static void cap_lua_finish_job(cap_lua_job_ctx_t *ctx,
@@ -181,6 +410,7 @@ static void cap_lua_finish_job(cap_lua_job_ctx_t *ctx,
     bool stopped = false;
     bool timed_out = false;
     bool became_terminal = false;
+    cap_lua_job_event_t event = {0};
 
     if (xSemaphoreTake(s_job_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
         return;
@@ -207,6 +437,7 @@ static void cap_lua_finish_job(cap_lua_job_ctx_t *ctx,
             free(s_jobs[ctx->slot].summary);
             s_jobs[ctx->slot].summary = strdup(summary);
         }
+        cap_lua_build_job_event_locked(&event, CAP_LUA_JOB_EVENT_TERMINAL, &s_jobs[ctx->slot]);
         became_terminal = true;
     }
 
@@ -218,6 +449,9 @@ static void cap_lua_finish_job(cap_lua_job_ctx_t *ctx,
 
     if (became_terminal && s_slot_terminal_sem[ctx->slot]) {
         xSemaphoreGive(s_slot_terminal_sem[ctx->slot]);
+    }
+    if (became_terminal) {
+        cap_lua_publish_job_event(&event);
     }
 }
 
@@ -245,6 +479,8 @@ static void cap_lua_job_task(void *arg)
                                        ctx->args_json,
                                        ctx->timeout_ms,
                                        ctx->stop_requested,
+                                       cap_lua_async_log_callback,
+                                       ctx,
                                        output,
                                        CAP_LUA_OUTPUT_SIZE);
     cap_lua_finish_job(ctx, err == ESP_OK, output, output);
@@ -262,6 +498,7 @@ esp_err_t cap_lua_async_init(void)
     if (!s_job_lock) {
         return ESP_ERR_NO_MEM;
     }
+    ESP_RETURN_ON_ERROR(cap_lua_ensure_event_lock(), TAG, "create event lock failed");
 
     for (int i = 0; i < CAP_LUA_ASYNC_MAX_JOBS; i++) {
         cap_lua_clear_slot(&s_jobs[i]);
@@ -285,6 +522,66 @@ esp_err_t cap_lua_async_start(void)
     }
     s_runner_started = true;
     return ESP_OK;
+}
+
+esp_err_t cap_lua_async_register_job_event_cb(cap_lua_job_event_cb_t cb, void *user_ctx)
+{
+    int free_slot = -1;
+
+    if (!cb) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    ESP_RETURN_ON_ERROR(cap_lua_ensure_event_lock(), TAG, "create event lock failed");
+
+    if (xSemaphoreTake(s_event_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        return ESP_ERR_TIMEOUT;
+    }
+    for (size_t i = 0; i < CAP_LUA_JOB_EVENT_OBSERVER_MAX; i++) {
+        if (s_event_observers[i].used &&
+                s_event_observers[i].cb == cb &&
+                s_event_observers[i].user_ctx == user_ctx) {
+            xSemaphoreGive(s_event_lock);
+            return ESP_OK;
+        }
+        if (!s_event_observers[i].used && free_slot < 0) {
+            free_slot = (int)i;
+        }
+    }
+    if (free_slot < 0) {
+        xSemaphoreGive(s_event_lock);
+        return ESP_ERR_NO_MEM;
+    }
+
+    s_event_observers[free_slot].used = true;
+    s_event_observers[free_slot].cb = cb;
+    s_event_observers[free_slot].user_ctx = user_ctx;
+    xSemaphoreGive(s_event_lock);
+    return ESP_OK;
+}
+
+esp_err_t cap_lua_async_unregister_job_event_cb(cap_lua_job_event_cb_t cb, void *user_ctx)
+{
+    if (!cb) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    if (!s_event_lock) {
+        return ESP_ERR_NOT_FOUND;
+    }
+
+    if (xSemaphoreTake(s_event_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        return ESP_ERR_TIMEOUT;
+    }
+    for (size_t i = 0; i < CAP_LUA_JOB_EVENT_OBSERVER_MAX; i++) {
+        if (s_event_observers[i].used &&
+                s_event_observers[i].cb == cb &&
+                s_event_observers[i].user_ctx == user_ctx) {
+            memset(&s_event_observers[i], 0, sizeof(s_event_observers[i]));
+            xSemaphoreGive(s_event_lock);
+            return ESP_OK;
+        }
+    }
+    xSemaphoreGive(s_event_lock);
+    return ESP_ERR_NOT_FOUND;
 }
 
 static void cap_lua_format_active_jobs_locked(char *out, size_t size)
@@ -355,6 +652,7 @@ static esp_err_t cap_lua_stop_slot_and_wait(int slot,
                                             bool *out_was_running)
 {
     bool was_running = false;
+    cap_lua_job_event_t event = {0};
 
     if (xSemaphoreTake(s_job_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
         return ESP_ERR_TIMEOUT;
@@ -375,9 +673,13 @@ static esp_err_t cap_lua_stop_slot_and_wait(int slot,
         ESP_LOGI(TAG, "Stop requested for job %s (name=%s)",
                  s_jobs[slot].job_id,
                  s_jobs[slot].name[0] ? s_jobs[slot].name : "(unnamed)");
+        cap_lua_build_job_event_locked(&event, CAP_LUA_JOB_EVENT_STOP_REQUESTED, &s_jobs[slot]);
     }
     xSemaphoreGive(s_job_lock);
 
+    if (was_running) {
+        cap_lua_publish_job_event(&event);
+    }
     if (out_was_running) {
         *out_was_running = was_running;
     }
@@ -419,6 +721,130 @@ esp_err_t cap_lua_async_submit(const cap_lua_async_job_t *job,
     return err;
 }
 
+static esp_err_t cap_lua_async_copy_terminal_result_locked(int slot,
+                                                           const char *expected_job_id,
+                                                           cap_lua_job_status_t *out_status,
+                                                           char *output,
+                                                           size_t output_size)
+{
+    const char *summary = NULL;
+
+    if (slot < 0 || slot >= CAP_LUA_ASYNC_MAX_JOBS || !expected_job_id ||
+            !expected_job_id[0] || !out_status || !output || output_size == 0) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    output[0] = '\0';
+    if (!s_jobs[slot].used ||
+            strncmp(s_jobs[slot].job_id, expected_job_id,
+                    sizeof(s_jobs[slot].job_id)) != 0) {
+        snprintf(output, output_size, "Error: Lua sync job disappeared: %s", expected_job_id);
+        return ESP_ERR_NOT_FOUND;
+    }
+
+    *out_status = s_jobs[slot].status;
+    summary = s_jobs[slot].summary;
+    if (summary && summary[0]) {
+        strlcpy(output, summary, output_size);
+    } else if (cap_lua_status_is_terminal(s_jobs[slot].status)) {
+        snprintf(output, output_size, "Lua script completed with no output.\n");
+    }
+    return ESP_OK;
+}
+
+esp_err_t cap_lua_async_run_and_wait(const cap_lua_async_job_t *job,
+                                     uint32_t wait_ms,
+                                     char *output,
+                                     size_t output_size)
+{
+    char job_id[CAP_LUA_JOB_ID_LEN] = {0};
+    char err_buf[256] = {0};
+    int slot = -1;
+    cap_lua_job_status_t status = CAP_LUA_JOB_QUEUED;
+    esp_err_t err;
+
+    if (!job || !job->path[0] || !output || output_size == 0) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    output[0] = '\0';
+
+    err = cap_lua_async_submit(job, job_id, sizeof(job_id), err_buf, sizeof(err_buf));
+    if (err != ESP_OK) {
+        if (err_buf[0]) {
+            snprintf(output, output_size, "Error: %s", err_buf);
+        } else {
+            snprintf(output, output_size, "Error: failed to queue Lua sync job (%s)",
+                     esp_err_to_name(err));
+        }
+        return err;
+    }
+
+    if (xSemaphoreTake(s_job_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        snprintf(output, output_size, "Error: timed out while locating Lua sync job %s", job_id);
+        return ESP_ERR_TIMEOUT;
+    }
+    slot = cap_lua_find_slot_by_id_or_name_locked(job_id);
+    if (slot < 0) {
+        xSemaphoreGive(s_job_lock);
+        snprintf(output, output_size, "Error: Lua sync job not found after submit: %s", job_id);
+        return ESP_ERR_NOT_FOUND;
+    }
+    status = s_jobs[slot].status;
+    bool already_terminal = cap_lua_status_is_terminal(status);
+    xSemaphoreGive(s_job_lock);
+
+    if (!already_terminal) {
+        cap_lua_wait_for_terminal(slot, wait_ms);
+    }
+
+    if (xSemaphoreTake(s_job_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        snprintf(output, output_size, "Error: timed out while collecting Lua sync job %s", job_id);
+        return ESP_ERR_TIMEOUT;
+    }
+    err = cap_lua_async_copy_terminal_result_locked(slot, job_id, &status, output, output_size);
+    bool terminal = (err == ESP_OK) && cap_lua_status_is_terminal(status);
+    xSemaphoreGive(s_job_lock);
+
+    if (!terminal) {
+        bool was_running = false;
+        (void)cap_lua_stop_slot_and_wait(slot, job_id, CAP_LUA_STOP_WAIT_DEFAULT_MS, &was_running);
+        if (xSemaphoreTake(s_job_lock, pdMS_TO_TICKS(1000)) == pdTRUE) {
+            if (s_jobs[slot].used &&
+                    strncmp(s_jobs[slot].job_id, job_id,
+                            sizeof(s_jobs[slot].job_id)) == 0) {
+                s_jobs[slot].sync_waiter = false;
+            }
+            xSemaphoreGive(s_job_lock);
+        }
+        snprintf(output, output_size,
+                 "Error: Lua script timed out after %u ms (job_id=%s%s)",
+                 (unsigned)wait_ms,
+                 job_id,
+                 was_running ? ", stop requested" : "");
+        return ESP_ERR_TIMEOUT;
+    }
+
+    if (xSemaphoreTake(s_job_lock, pdMS_TO_TICKS(1000)) == pdTRUE) {
+        if (s_jobs[slot].used &&
+                strncmp(s_jobs[slot].job_id, job_id,
+                        sizeof(s_jobs[slot].job_id)) == 0) {
+            cap_lua_clear_slot(&s_jobs[slot]);
+        }
+        xSemaphoreGive(s_job_lock);
+    }
+
+    switch (status) {
+    case CAP_LUA_JOB_DONE:
+        return ESP_OK;
+    case CAP_LUA_JOB_TIMEOUT:
+        return ESP_ERR_TIMEOUT;
+    case CAP_LUA_JOB_STOPPED:
+        return ESP_ERR_TIMEOUT;
+    case CAP_LUA_JOB_FAILED:
+    default:
+        return ESP_FAIL;
+    }
+}
+
 static esp_err_t cap_lua_async_submit_once(const cap_lua_async_job_t *job,
                                            char *job_id_out,
                                            size_t job_id_out_size,
@@ -426,6 +852,9 @@ static esp_err_t cap_lua_async_submit_once(const cap_lua_async_job_t *job,
                                            size_t err_out_size,
                                            bool *out_recheck_lost_race)
 {
+    size_t log_bytes;
+    char *log_buf = NULL;
+
     if (out_recheck_lost_race) {
         *out_recheck_lost_race = false;
     }
@@ -434,6 +863,16 @@ static esp_err_t cap_lua_async_submit_once(const cap_lua_async_job_t *job,
     }
     if (!s_job_lock || !s_runner_started) {
         return ESP_ERR_INVALID_STATE;
+    }
+    log_bytes = job->log_bytes ? job->log_bytes : CAP_LUA_ASYNC_LOG_DEFAULT_BYTES;
+    if (log_bytes < CAP_LUA_ASYNC_LOG_MIN_BYTES || log_bytes > CAP_LUA_ASYNC_LOG_MAX_BYTES) {
+        if (err_out && err_out_size > 0) {
+            snprintf(err_out, err_out_size,
+                     "log_bytes must be between %u and %u",
+                     (unsigned)CAP_LUA_ASYNC_LOG_MIN_BYTES,
+                     (unsigned)CAP_LUA_ASYNC_LOG_MAX_BYTES);
+        }
+        return ESP_ERR_INVALID_ARG;
     }
 
     while (true) {
@@ -545,13 +984,22 @@ static esp_err_t cap_lua_async_submit_once(const cap_lua_async_job_t *job,
             return ESP_ERR_NO_MEM;
         }
     }
+    log_buf = calloc(1, log_bytes);
+    if (!log_buf) {
+        free(ctx->args_json);
+        free(ctx);
+        return ESP_ERR_NO_MEM;
+    }
 
     char submitted_job_id[CAP_LUA_JOB_ID_LEN] = {0};
     char submitted_path[CAP_LUA_JOB_PATH_MAX] = {0};
+    cap_lua_job_event_t created_event = {0};
+    cap_lua_job_event_t running_event = {0};
     strlcpy(submitted_job_id, ctx->job_id, sizeof(submitted_job_id));
     strlcpy(submitted_path, ctx->path, sizeof(submitted_path));
 
     if (xSemaphoreTake(s_job_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        free(log_buf);
         free(ctx->args_json);
         free(ctx);
         return ESP_ERR_TIMEOUT;
@@ -559,6 +1007,7 @@ static esp_err_t cap_lua_async_submit_once(const cap_lua_async_job_t *job,
 
     if (s_running_jobs >= CAP_LUA_ASYNC_MAX_CONCURRENT) {
         xSemaphoreGive(s_job_lock);
+        free(log_buf);
         free(ctx->args_json);
         free(ctx);
         if (err_out && err_out_size > 0) {
@@ -593,6 +1042,7 @@ static esp_err_t cap_lua_async_submit_once(const cap_lua_async_job_t *job,
         strlcpy(recheck_id, s_jobs[recheck_conflict].job_id, sizeof(recheck_id));
         strlcpy(recheck_name, s_jobs[recheck_conflict].name, sizeof(recheck_name));
         xSemaphoreGive(s_job_lock);
+        free(log_buf);
         free(ctx->args_json);
         free(ctx);
         if (out_recheck_lost_race) {
@@ -611,6 +1061,7 @@ static esp_err_t cap_lua_async_submit_once(const cap_lua_async_job_t *job,
     int slot = cap_lua_find_reusable_slot_locked();
     if (slot < 0) {
         xSemaphoreGive(s_job_lock);
+        free(log_buf);
         free(ctx->args_json);
         free(ctx);
         return ESP_ERR_NO_MEM;
@@ -636,17 +1087,25 @@ static esp_err_t cap_lua_async_submit_once(const cap_lua_async_job_t *job,
         if (!s_jobs[slot].args_json) {
             cap_lua_clear_slot(&s_jobs[slot]);
             xSemaphoreGive(s_job_lock);
+            free(log_buf);
             free(ctx->args_json);
             free(ctx);
             return ESP_ERR_NO_MEM;
         }
     }
+    s_jobs[slot].log_buf = log_buf;
+    s_jobs[slot].log_size = log_bytes;
+    log_buf = NULL;
     s_jobs[slot].timeout_ms = job->timeout_ms;
+    s_jobs[slot].sync_waiter = job->sync_waiter;
     s_jobs[slot].stop_requested = false;
     ctx->slot = slot;
     ctx->stop_requested = &s_jobs[slot].stop_requested;
     s_running_jobs++;
+    cap_lua_build_job_event_locked(&created_event, CAP_LUA_JOB_EVENT_CREATED, &s_jobs[slot]);
     xSemaphoreGive(s_job_lock);
+
+    cap_lua_publish_job_event(&created_event);
 
     {
         claw_task_config_t task_config = {
@@ -675,12 +1134,28 @@ static esp_err_t cap_lua_async_submit_once(const cap_lua_async_job_t *job,
                          (unsigned)free_bytes);
             }
             if (xSemaphoreTake(s_job_lock, pdMS_TO_TICKS(1000)) == pdTRUE) {
+                cap_lua_job_event_t failed_event = {0};
+                bool publish_failed = false;
+                if (s_jobs[slot].used &&
+                        strncmp(s_jobs[slot].job_id, submitted_job_id,
+                                sizeof(s_jobs[slot].job_id)) == 0) {
+                    s_jobs[slot].status = CAP_LUA_JOB_FAILED;
+                    s_jobs[slot].finished_at = time(NULL);
+                    cap_lua_build_job_event_locked(&failed_event,
+                                                   CAP_LUA_JOB_EVENT_TERMINAL,
+                                                   &s_jobs[slot]);
+                    publish_failed = true;
+                }
                 cap_lua_clear_slot(&s_jobs[slot]);
                 if (s_running_jobs > 0) {
                     s_running_jobs--;
                 }
                 xSemaphoreGive(s_job_lock);
+                if (publish_failed) {
+                    cap_lua_publish_job_event(&failed_event);
+                }
             }
+            free(log_buf);
             free(ctx->args_json);
             free(ctx);
             return ESP_ERR_NO_MEM;
@@ -688,20 +1163,31 @@ static esp_err_t cap_lua_async_submit_once(const cap_lua_async_job_t *job,
     }
 
     if (xSemaphoreTake(s_job_lock, pdMS_TO_TICKS(1000)) == pdTRUE) {
-        s_jobs[slot].status = CAP_LUA_JOB_RUNNING;
-        s_jobs[slot].started_at = time(NULL);
+        if (s_jobs[slot].used &&
+                strncmp(s_jobs[slot].job_id, submitted_job_id,
+                        sizeof(s_jobs[slot].job_id)) == 0 &&
+                s_jobs[slot].status == CAP_LUA_JOB_QUEUED) {
+            s_jobs[slot].status = CAP_LUA_JOB_RUNNING;
+            s_jobs[slot].started_at = time(NULL);
+            cap_lua_build_job_event_locked(&running_event, CAP_LUA_JOB_EVENT_RUNNING, &s_jobs[slot]);
+        }
         xSemaphoreGive(s_job_lock);
+    }
+
+    if (running_event.job_id[0]) {
+        cap_lua_publish_job_event(&running_event);
     }
 
     if (job_id_out && job_id_out_size > 0) {
         strlcpy(job_id_out, submitted_job_id, job_id_out_size);
     }
 
-    ESP_LOGI(TAG, "Queued Lua async job %s name=%s exclusive=%s timeout_ms=%u path=%s",
+    ESP_LOGI(TAG, "Queued Lua async job %s name=%s exclusive=%s timeout_ms=%u log_bytes=%u path=%s",
              submitted_job_id,
              job->name[0] ? job->name : "(unnamed)",
              job->exclusive[0] ? job->exclusive : "none",
              (unsigned)job->timeout_ms,
+             (unsigned)log_bytes,
              submitted_path);
     return ESP_OK;
 }
@@ -765,18 +1251,28 @@ esp_err_t cap_lua_async_get_job(const char *id_or_name,
                                 char *output,
                                 size_t output_size)
 {
+    char *recent_log = NULL;
+    const size_t recent_log_size = CAP_LUA_ASYNC_LOG_TAIL_DEFAULT_BYTES + 1;
+
     if (!id_or_name || !id_or_name[0] || !output || output_size == 0) {
         return ESP_ERR_INVALID_ARG;
     }
     output[0] = '\0';
 
+    recent_log = calloc(1, recent_log_size);
+    if (!recent_log) {
+        return ESP_ERR_NO_MEM;
+    }
+
     if (xSemaphoreTake(s_job_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        free(recent_log);
         return ESP_ERR_TIMEOUT;
     }
 
     int slot = cap_lua_find_slot_by_id_or_name_locked(id_or_name);
     if (slot < 0) {
         xSemaphoreGive(s_job_lock);
+        free(recent_log);
         snprintf(output, output_size, "Error: Lua async job not found: %s", id_or_name);
         return ESP_ERR_NOT_FOUND;
     }
@@ -785,9 +1281,23 @@ esp_err_t cap_lua_async_get_job(const char *id_or_name,
     int runtime_s = cap_lua_format_runtime_seconds(
         now,
         s_jobs[slot].started_at ? s_jobs[slot].started_at : s_jobs[slot].created_at);
+    uint64_t log_from = s_jobs[slot].log_seq > CAP_LUA_ASYNC_LOG_TAIL_DEFAULT_BYTES
+                        ? s_jobs[slot].log_seq - CAP_LUA_ASYNC_LOG_TAIL_DEFAULT_BYTES
+                        : 0;
+    uint64_t log_next = 0;
+    bool range_truncated = false;
+    cap_lua_async_copy_log_range_locked(&s_jobs[slot],
+                                        log_from,
+                                        CAP_LUA_ASYNC_LOG_TAIL_DEFAULT_BYTES,
+                                        recent_log,
+                                        recent_log_size,
+                                        &log_from,
+                                        &log_next,
+                                        &range_truncated);
 
     snprintf(output, output_size,
-             "job_id=%s\nname=%s\nstatus=%s\nexclusive=%s\nruntime_s=%d\npath=%s\nargs=%s\nsummary=%s",
+             "job_id=%s\nname=%s\nstatus=%s\nexclusive=%s\nruntime_s=%d\npath=%s\nargs=%s\nsummary=%s\n"
+             "log_seq=%" PRIu64 "\nlog_size=%u\nlog_truncated=%s\nrecent_log=%s",
              s_jobs[slot].job_id,
              s_jobs[slot].name[0] ? s_jobs[slot].name : "(unnamed)",
              cap_lua_job_status_name(s_jobs[slot].status),
@@ -795,8 +1305,89 @@ esp_err_t cap_lua_async_get_job(const char *id_or_name,
              runtime_s,
              s_jobs[slot].path,
              (s_jobs[slot].args_json && s_jobs[slot].args_json[0]) ? s_jobs[slot].args_json : "(none)",
-             (s_jobs[slot].summary && s_jobs[slot].summary[0]) ? s_jobs[slot].summary : "(empty)");
+             (s_jobs[slot].summary && s_jobs[slot].summary[0]) ? s_jobs[slot].summary : "(empty)",
+             s_jobs[slot].log_seq,
+             (unsigned)s_jobs[slot].log_size,
+             (s_jobs[slot].log_truncated || range_truncated) ? "true" : "false",
+             recent_log[0] ? recent_log : "(empty)");
     xSemaphoreGive(s_job_lock);
+    free(recent_log);
+    return ESP_OK;
+}
+
+esp_err_t cap_lua_async_tail_job(const char *id_or_name,
+                                 bool has_since_seq,
+                                 uint64_t since_seq,
+                                 size_t max_bytes,
+                                 char *output,
+                                 size_t output_size)
+{
+    char *log = NULL;
+    size_t log_size;
+
+    if (!id_or_name || !id_or_name[0] || !output || output_size == 0) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    output[0] = '\0';
+
+    if (max_bytes == 0) {
+        max_bytes = CAP_LUA_ASYNC_LOG_TAIL_DEFAULT_BYTES;
+    }
+    if (output_size <= 512) {
+        max_bytes = 0;
+    } else if (max_bytes > output_size - 512) {
+        max_bytes = output_size - 512;
+    }
+    if (max_bytes > CAP_LUA_ASYNC_LOG_MAX_BYTES) {
+        max_bytes = CAP_LUA_ASYNC_LOG_MAX_BYTES;
+    }
+    log_size = max_bytes + 1;
+    log = calloc(1, log_size);
+    if (!log) {
+        return ESP_ERR_NO_MEM;
+    }
+
+    if (xSemaphoreTake(s_job_lock, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        free(log);
+        return ESP_ERR_TIMEOUT;
+    }
+
+    int slot = cap_lua_find_slot_by_id_or_name_locked(id_or_name);
+    if (slot < 0) {
+        xSemaphoreGive(s_job_lock);
+        free(log);
+        snprintf(output, output_size, "Error: Lua async job not found: %s", id_or_name);
+        return ESP_ERR_NOT_FOUND;
+    }
+
+    uint64_t from_seq = since_seq;
+    if (!has_since_seq) {
+        from_seq = s_jobs[slot].log_seq > max_bytes ? s_jobs[slot].log_seq - max_bytes : 0;
+    }
+    uint64_t actual_from = 0;
+    uint64_t next_seq = 0;
+    bool range_truncated = false;
+    cap_lua_async_copy_log_range_locked(&s_jobs[slot],
+                                        from_seq,
+                                        max_bytes,
+                                        log,
+                                        log_size,
+                                        &actual_from,
+                                        &next_seq,
+                                        &range_truncated);
+
+    snprintf(output,
+             output_size,
+             "job_id=%s\nstatus=%s\nlog_from_seq=%" PRIu64 "\nlog_next_seq=%" PRIu64
+             "\nlog_truncated=%s\nlog=%s",
+             s_jobs[slot].job_id,
+             cap_lua_job_status_name(s_jobs[slot].status),
+             actual_from,
+             next_seq,
+             (s_jobs[slot].log_truncated || range_truncated) ? "true" : "false",
+             log[0] ? log : "(empty)");
+    xSemaphoreGive(s_job_lock);
+    free(log);
     return ESP_OK;
 }
 
